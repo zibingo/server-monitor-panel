@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gjh303-服务器集群监控</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 使用Bootstrap基础样式 -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- FontAwesome图标 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/all.min.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/png">
+</head>
+<body>
+    <div class="container">
+        <div class="server-grid">
+            {% for node in nodes %}
+            <div class="server-card {% if node.status == 'offline' %}offline{% elif node.status == 'error' %}error{% endif %}" id="node-{{ node.node_id }}">
+                <div class="server-header">
+                    <div class="server-name">
+                        <i class="fas fa-server"></i>
+                        <span>{{ node.node_name }}</span>
+                    </div>
+                    <div class="server-status">
+                        {% if node.status == 'offline' %}
+                            <span class="status-badge offline">离线</span>
+                        {% elif node.status == 'error' %}
+                            <span class="status-badge error">错误</span>
+                        {% else %}
+                            <span class="status-badge online">在线</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="server-info">
+                    <div class="info-row">
+                        <span class="info-label">IP:</span>
+                        <span class="info-value">{{ node.node_ip }}</span>
+                    </div>
+                    
+                    {% if node.status != 'offline' and node.status != 'error' %}
+                    <div class="info-row">
+                        <span class="info-label">系统:</span>
+                        <span class="info-value">{{ node.platform }} {{ node.platform_release }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">处理器:</span>
+                        <span class="info-value">{{ node.processor }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">主机名:</span>
+                        <span class="info-value">{{ node.hostname }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">运行时间:</span>
+                        <span class="info-value">{{ node.uptime_days }} 天</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if node.status != 'offline' and node.status != 'error' %}
+                <div class="metrics-section">
+                    <!-- CPU 使用率 -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">CPU</span>
+                            <span class="metric-value">{{ node.cpu.usage_percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.cpu.usage_percent < 60 %}bg-success
+                                {% elif node.cpu.usage_percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.cpu.usage_percent }}%" 
+                                aria-valuenow="{{ node.cpu.usage_percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.cpu.physical_cores }} 物理核心 / {{ node.cpu.total_cores }} 逻辑核心</small>
+                            {% if node.cpu_temp %}
+                            <small>温度: {{ node.cpu_temp }}°C</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- GPU 信息 (如果有) -->
+                    {% if node.gpu and node.gpu|length > 0 %}
+                    {% for gpu in node.gpu %}
+                    <!-- GPU 信息 - 合并显示 -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">GPU {{ gpu.id }}</span>
+                            <span class="metric-value">{{ gpu.load }}</span>
+                        </div>
+                        <div class="progress">
+                            {% set memory_percent = (gpu.memoryUsed|int / gpu.memoryTotal|int * 100)|round %}
+                            <div class="progress-bar 
+                                {% if memory_percent < 60 %}bg-success
+                                {% elif memory_percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ memory_percent }}%" 
+                                aria-valuenow="{{ memory_percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ gpu.name }}</small>
+                            <small>{{ gpu.used_memory }}/{{ gpu.total_memory }}</small>
+                            <small>{{ gpu.temperature }}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    
+                    <!-- 内存使用率 -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">内存</span>
+                            <span class="metric-value">{{ node.memory.percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.memory.percent < 60 %}bg-success
+                                {% elif node.memory.percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.memory.percent }}%" 
+                                aria-valuenow="{{ node.memory.percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.memory.used }} / {{ node.memory.total }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 交换分区使用率 -->
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">Swap</span>
+                            <span class="metric-value">{{ node.swap.percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.swap.percent < 60 %}bg-success
+                                {% elif node.swap.percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.swap.percent }}%" 
+                                aria-valuenow="{{ node.swap.percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.swap.used }} / {{ node.swap.total }}</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 硬盘使用率 -->
+                    <!-- <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">硬盘</span>
+                            <span class="metric-value">{{ node.disk_percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.disk_percent < 60 %}bg-success
+                                {% elif node.disk_percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.disk_percent }}%" 
+                                aria-valuenow="{{ node.disk_percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.disk[0].used }} / {{ node.disk[0].total }}</small>
+                        </div>
+                    </div> -->
+                    
+                    <!-- autodl-tmp 目录使用率 -->
+                    {% if node.docker_system_disk %}
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">Docker系统盘</span>
+                            <span class="metric-value">{{ node.docker_system_disk.percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.docker_system_disk.percent < 60 %}bg-success
+                                {% elif node.docker_system_disk.percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.docker_system_disk.percent }}%" 
+                                aria-valuenow="{{ node.docker_system_disk.percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.docker_system_disk.used }} / {{ node.docker_system_disk.total }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- server-monitor-flask 目录使用率 -->
+                    {% if node.docker_data_disk %}
+                    <div class="metric-item">
+                        <div class="metric-header">
+                            <span class="metric-name">Docker数据盘</span>
+                            <span class="metric-value">{{ node.docker_data_disk.percent }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar 
+                                {% if node.docker_data_disk.percent < 60 %}bg-success
+                                {% elif node.docker_data_disk.percent < 80 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ node.docker_data_disk.percent }}%" 
+                                aria-valuenow="{{ node.docker_data_disk.percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <div class="metric-details">
+                            <small>{{ node.docker_data_disk.used }} / {{ node.docker_data_disk.total }}</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="system-load-section">
+                    <div class="section-title">负载</div>
+                    <div class="load-values">
+                        <div class="load-item">
+                            <span class="load-label">1分钟</span>
+                            <span class="load-value">{{ node.load.load1 }}%</span>
+                        </div>
+                        <div class="load-item">
+                            <span class="load-label">5分钟</span>
+                            <span class="load-value">{{ node.load.load5 }}%</span>
+                        </div>
+                        <div class="load-item">
+                            <span class="load-label">15分钟</span>
+                            <span class="load-value">{{ node.load.load15 }}%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="network-section">
+                    <div class="section-title">网络</div>
+                    <div class="network-stats">
+                        <div class="network-row">
+                            <div class="network-label">
+                                <i class="fas fa-upload text-success"></i> 上传
+                            </div>
+                            <div class="network-value">{{ node.network.upload_speed }}</div>
+                        </div>
+                        <div class="network-row">
+                            <div class="network-label">
+                                <i class="fas fa-download text-danger"></i> 下载
+                            </div>
+                            <div class="network-value">{{ node.network.download_speed }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- <footer class="text-center py-4">
+            <p class="text-muted">数据每1秒自动刷新</p>
+            <button id="refresh-btn" class="btn btn-primary">立即刷新</button>
+        </footer> -->
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 

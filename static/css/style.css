@@ -1,0 +1,228 @@
+/* 全局样式 */
+body {
+    font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 服务器卡片网格布局 */
+.server-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+/* 服务器卡片样式 */
+.server-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.server-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.server-card.offline {
+    opacity: 0.7;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.server-card.error {
+    opacity: 0.8;
+    background-color: #fff8f8;
+    border: 1px solid #f5c6cb;
+}
+
+/* 服务器头部 */
+.server-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.server-name {
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.server-name i {
+    margin-right: 8px;
+    color: #007bff;
+}
+
+.status-badge {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.status-badge.online {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-badge.offline {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.status-badge.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* 服务器基本信息 */
+.server-info {
+    margin-bottom: 15px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.info-label {
+    width: 70px;
+    color: #6c757d;
+}
+
+.info-value {
+    flex: 1;
+}
+
+/* 指标部分 */
+.metrics-section {
+    margin-bottom: 15px;
+}
+
+.metric-item {
+    margin-bottom: 10px;
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.metric-name {
+    font-weight: 500;
+}
+
+.metric-value {
+    font-weight: 500;
+}
+
+.progress {
+    height: 10px;
+    margin-bottom: 5px;
+}
+
+.metric-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* 调整GPU卡片中的细节信息 */
+.metric-details small:nth-child(1) {
+    max-width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.metric-details small:nth-child(2) {
+    text-align: center;
+}
+
+.metric-details small:nth-child(3) {
+    color: #dc3545;
+    text-align: right;
+}
+
+/* 系统负载部分 */
+.system-load-section,
+.network-section {
+    padding-top: 15px;
+    margin-bottom: 15px;
+    border-top: 1px solid #eee;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.load-values {
+    display: flex;
+    justify-content: space-between;
+}
+
+.load-item {
+    text-align: center;
+}
+
+.load-label {
+    display: block;
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.load-value {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* 网络部分 */
+.network-stats {
+    margin-bottom: 10px;
+}
+
+.network-row,
+.traffic-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.network-label,
+.traffic-label {
+    color: #495057;
+}
+
+.network-value,
+.traffic-value {
+    font-weight: 500;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .server-grid {
+        grid-template-columns: 1fr;
+    }
+} 
