@@ -45,7 +45,7 @@
 5. 打开浏览器访问 http://localhost:60000
 
 6. 开机自启动
-
+   > 更改ExecStart中的环境路径和python文件路径
    - 主服务器
 
    ```Sh
